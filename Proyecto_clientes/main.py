@@ -143,5 +143,14 @@ def eliminar_factura(factura_id: int):
     return {"mensaje": "Factura eliminada", "factura": serializar_factura(factura_eliminada)}
 
 
+@app.get("/transacciones")
+def listar_transacciones():
+    return {"transacciones": [t.model_dump() for t in lista_transacciones]}
 
-    
+
+@app.get("/transacciones/{transaccion_id}")
+def obtener_transaccion(transaccion_id: int):
+    indice = obtener_indice_transaccion(transaccion_id)
+    return {"transaccion": lista_transacciones[indice].model_dump()}
+
+
