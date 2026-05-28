@@ -154,3 +154,43 @@ def obtener_transaccion(transaccion_id: int):
     return {"transaccion": lista_transacciones[indice].model_dump()}
 
 
+@app.post("/transacciones")
+def crear_transaccion(datos: TransaccionCreate):
+    global id_transaccion_inc
+    obtener_indice_factura(datos.factura_id)
+
+    nueva_transaccion = TransaccionDB(id=id_transaccion_inc, **datos.model_dump())
+    lista_transacciones.append(nueva_transaccion)
+    id_transaccion_inc += 1
+
+    actualizar_transacciones_en_factura(nueva_transaccion.factura_id)
+    return {"mensaje": "Transaccion creada", "transaccion": nueva_transaccion.model_dump()}
+
+
+@app.put("/transacciones/{transaccion_id}")
+def editar_transaccion(transaccion_id: int, datos: TransaccionUpdate):
+    obtener_indice_factura(datos.factura_id)
+    indice = obtener_indice_transaccion(transaccion_id)
+    factura_anterior_id = lista_transacciones[indice].factura_id
+
+    transaccion_actualizada = TransaccionDB(id=transaccion_id, **datos.model_dump())
+    lista_transacciones[indice] = transaccion_actualizada
+
+    actualizar_transacciones_en_factura(factura_anterior_id)
+    if factura_anterior_id != transaccion_actualizada.factura_id:
+        actualizar_transacciones_en_factura(transaccion_actualizada.factura_id)
+    return {
+        "mensaje": "Transaccion actualizada",
+        "transaccion": transaccion_actualizada.model_dump(),
+    }
+
+
+@app.delete("/transacciones/{transaccion_id}")
+def eliminar_transaccion(transaccion_id: int):
+    indice = obtener_indice_transaccion(transaccion_id)
+    transaccion_eliminada = lista_transacciones.pop(indice)
+    actualizar_transacciones_en_factura(transaccion_eliminada.factura_id)
+    return {
+        "mensaje": "Transaccion eliminada",
+        "transaccion": transaccion_eliminada.model_dump(),
+    }
