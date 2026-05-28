@@ -1,43 +1,64 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from datetime import datetime
+
+from modelos.factura import FacturaCreate, FacturaDB, FacturaUpdate
+from modelos.transaccion import TransaccionCreate, TransaccionDB, TransaccionUpdate
 
 app = FastAPI()
 
-# --- MODELOS ---
+
 class Cliente(BaseModel):
     nombre: str
     edad: int
     descripcion: str | None = None
 
-class Factura(BaseModel):
-    cliente_id: int
-    monto: float
-    concepto: str
 
-class Transaccion(BaseModel):
-    factura_id: int
-    metodo_pago: str  # Ejemplo: Efectivo, Tarjeta
-    estado: str = "Completada"
-
-# --- BASES DE DATOS TEMPORALES Y CONTADORES ---
-lista_clientes = []
-lista_facturas = []
-lista_transacciones = []
+lista_clientes: list[dict] = []
+lista_facturas: list[FacturaDB] = []
+lista_transacciones: list[TransaccionDB] = []
 
 id_cliente_inc = 1
 id_factura_inc = 1
 id_transaccion_inc = 1
 
-# --- 1. INICIO ---
+
+def obtener_indice_factura(factura_id: int) -> int:
+    for i, factura in enumerate(lista_facturas):
+        if factura.id == factura_id:
+            return i
+    raise HTTPException(status_code=404, detail="Factura no encontrada")
+
+
+def obtener_indice_transaccion(transaccion_id: int) -> int:
+    for i, transaccion in enumerate(lista_transacciones):
+        if transaccion.id == transaccion_id:
+            return i
+    raise HTTPException(status_code=404, detail="Transaccion no encontrada")
+
+
+def serializar_factura(factura: FacturaDB) -> dict:
+    data = factura.model_dump()
+    data["valor_total"] = factura.valor_total()
+    return data
+
+
+def actualizar_transacciones_en_factura(factura_id: int) -> None:
+    indice = obtener_indice_factura(factura_id)
+    transacciones_factura = [
+        t for t in lista_transacciones if t.factura_id == factura_id
+    ]
+    lista_facturas[indice].lista_transacciones = transacciones_factura
+
+
 @app.get("/")
 def inicio():
     return {"mensaje": "Sistema Integral ReCal Tech - FastAPI"}
 
-# --- 2. APARTADO CLIENTES (GET, POST, PUT, DELETE) ---
+
 @app.get("/clientes")
 def listar_clientes():
-    return {"Clientes": lista_clientes}
+    return {"clientes": lista_clientes}
+
 
 @app.post("/clientes")
 def crear_cliente(datos: Cliente):
@@ -48,58 +69,79 @@ def crear_cliente(datos: Cliente):
     id_cliente_inc += 1
     return {"mensaje": "Cliente creado satisfactoriamente", "cliente": nuevo}
 
+
 @app.put("/clientes/{id}")
 def editar_cliente(id: int, datos: Cliente):
-    for i, obj in enumerate(lista_clientes):
-        if obj["id"] == id:
+    for i, cliente in enumerate(lista_clientes):
+        if cliente["id"] == id:
             actualizado = datos.model_dump()
             actualizado["id"] = id
             lista_clientes[i] = actualizado
-            return {"mensaje": "Cliente actualizado", "Cliente": actualizado}
-    return {"error": "No encontrado"}
+            return {"mensaje": "Cliente actualizado", "cliente": actualizado}
+    raise HTTPException(status_code=404, detail="Cliente no encontrado")
+
 
 @app.delete("/clientes/{id}")
 def eliminar_cliente(id: int):
-    for i, obj in enumerate(lista_clientes):
-        if obj["id"] == id:
+    for i, cliente in enumerate(lista_clientes):
+        if cliente["id"] == id:
             eliminado = lista_clientes.pop(i)
             return {"mensaje": "Cliente eliminado", "datos_eliminados": eliminado}
-    return {"error": "No encontrado"}
+    raise HTTPException(status_code=404, detail="Cliente no encontrado")
 
-# --- 3. APARTADO FACTURAS (POST y GET) ---
+
 @app.get("/facturas")
 def listar_facturas():
-    return {"Facturas": lista_facturas}
+    return {"facturas": [serializar_factura(factura) for factura in lista_facturas]}
+
+
+@app.get("/facturas/{factura_id}")
+def obtener_factura(factura_id: int):
+    indice = obtener_indice_factura(factura_id)
+    return {"factura": serializar_factura(lista_facturas[indice])}
+
 
 @app.post("/facturas")
-def crear_factura(datos: Factura):
+def crear_factura(datos: FacturaCreate):
     global id_factura_inc
-    # Validación: ¿Existe el cliente?
-    if not any(c["id"] == datos.cliente_id for c in lista_clientes):
-        return {"error": "El cliente no existe"}
+    if not any(c["id"] == datos.cliente for c in lista_clientes):
+        raise HTTPException(status_code=404, detail="El cliente no existe")
 
-    nueva_f = datos.model_dump()
-    nueva_f["id"] = id_factura_inc
-    nueva_f["fecha"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    lista_facturas.append(nueva_f)
+    nueva_factura = FacturaDB(
+        id=id_factura_inc,
+        cliente=datos.cliente,
+        lista_transacciones=[],
+    )
+    lista_facturas.append(nueva_factura)
     id_factura_inc += 1
-    return {"mensaje": "Factura generada", "factura": nueva_f}
+    return {"mensaje": "Factura creada", "factura": serializar_factura(nueva_factura)}
 
-# --- 4. APARTADO TRANSACCIONES (POST y GET) ---
-@app.get("/transacciones")
-def listar_transacciones():
-    return {"Transacciones": lista_transacciones}
 
-@app.post("/transacciones")
-def crear_transaccion(datos: Transaccion):
-    global id_transaccion_inc
-    # Validación: ¿Existe la factura?
-    if not any(f["id"] == datos.factura_id for f in lista_facturas):
-        return {"error": "La factura no existe"}
+@app.put("/facturas/{factura_id}")
+def editar_factura(factura_id: int, datos: FacturaUpdate):
+    if not any(c["id"] == datos.cliente for c in lista_clientes):
+        raise HTTPException(status_code=404, detail="El cliente no existe")
 
-    nueva_t = datos.model_dump()
-    nueva_t["id"] = id_transaccion_inc
-    nueva_t["fecha_pago"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    lista_transacciones.append(nueva_t)
-    id_transaccion_inc += 1
-    return {"mensaje": "Transacción registrada", "detalle": nueva_t}
+    indice = obtener_indice_factura(factura_id)
+    factura_actual = lista_facturas[indice]
+    lista_facturas[indice] = FacturaDB(
+        id=factura_actual.id,
+        fecha=factura_actual.fecha,
+        cliente=datos.cliente,
+        lista_transacciones=factura_actual.lista_transacciones,
+    )
+    return {"mensaje": "Factura actualizada", "factura": serializar_factura(lista_facturas[indice])}
+
+
+@app.delete("/facturas/{factura_id}")
+def eliminar_factura(factura_id: int):
+    indice = obtener_indice_factura(factura_id)
+    factura_eliminada = lista_facturas.pop(indice)
+    lista_transacciones[:] = [
+        t for t in lista_transacciones if t.factura_id != factura_id
+    ]
+    return {"mensaje": "Factura eliminada", "factura": serializar_factura(factura_eliminada)}
+
+
+
+    
