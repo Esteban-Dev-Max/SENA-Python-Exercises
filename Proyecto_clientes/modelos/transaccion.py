@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class TransaccionBase(BaseModel):
@@ -17,3 +17,5 @@ class TransaccionUpdate(TransaccionBase):
 
 class TransaccionDB(TransaccionBase):
     id: int
+
+    model_config = ConfigDict(from_attributes=True)
