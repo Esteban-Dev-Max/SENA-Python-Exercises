@@ -1,15 +1,13 @@
-// Importamos Express usando la sintaxis de ES Modules (import)
-import express from 'express';
+import express from 'express'
+import "dotenv/config"
 
 const app = express();
-const port = 3000;
+const port = process.env.port || 3000;
 
-// Definición de la ruta principal
-app.get('/', (req, res) => {
+app.get("/", (_, res) => {
   res.send('Hola, estamos aprendiendo express con la ficha 3407184');
 });
 
-// Inicialización del servidor HTTP
 app.listen(port, () => {
-  console.log(`Servidor en funcionamiento en http://localhost:${port}`);
+  console.log(`Servidor en funcionamiento en el puerto: ${port}`);
 });

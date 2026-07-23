@@ -1,16 +1,18 @@
 {
-  "name": "intro-express-js-esteban-reyes",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "pnpm": "^11.17.0"
+  },
+  "name": "intro-express-esteban-reyes",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "type": "module",
   "scripts": {
+    "dev": "node --watch app.js",
+    "produccion": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "express": "^5.2.1"
-  }
+  "type": "module"
 }
