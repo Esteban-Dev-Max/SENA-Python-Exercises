@@ -1,0 +1,20 @@
+{
+  "name": "intro_express_3407184",
+  "version": "1.0.0",
+  "description": "introduccion a express con la ficha 3407184 del tecnologo ADSO",
+  "keywords": [],
+  "license": "ISC",
+  "author": "jhonny guerrero",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node --watch app.js",
+    "produccion": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  }
+}
