@@ -1,0 +1,12 @@
+{
+  "name": "crudAprendices",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^4.22.2"
+  }
+}
