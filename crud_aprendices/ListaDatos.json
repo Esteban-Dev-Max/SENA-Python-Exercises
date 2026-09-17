@@ -8,11 +8,27 @@
     "avatar": "imagenes/juan.jpg"
   },
   {
-    "dni": 2,
+    "dni": "2",
     "nombre": "Luis",
-    "apellido": "Gomez modificado",
-    "edad": 25,
-    "correo": "luis@example.com",
-    "avatar": "imagenes/luis.jpg"
+    "apellido": "Mana",
+    "edad": "15",
+    "correo": "luis@gmail.com",
+    "imagen": "sin imagen"
+  },
+  {
+    "dni": "2",
+    "nombre": "Luis",
+    "apellido": "Mana",
+    "edad": "15",
+    "correo": "luis@gmail.com",
+    "imagen": "/misImagenes/1787865633314.png"
+  },
+  {
+    "dni": "2",
+    "nombre": "Luis",
+    "apellido": "Mana",
+    "edad": "15",
+    "correo": "luis@gmail.com",
+    "imagen": "/misImagenes/1789063636654.png"
   }
 ]

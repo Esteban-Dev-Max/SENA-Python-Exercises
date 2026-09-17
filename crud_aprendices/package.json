@@ -1,12 +1,22 @@
 {
-  "name": "crudAprendices",
-  "version": "1.0.0",
-  "main": "app.js",
-  "scripts": {
-    "dev": "node --watch app.js"
-  },
-  "dependencies": {
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2"
-  }
+    "name": "ls",
+    "version": "1.0.0",
+    "description": "",
+    "type": "commonjs",
+    "main": "src/index.js",
+    "scripts": {
+        "start": "node src/index.js",
+        "dev": "nodemon src/index.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "dependencies": {
+        "bcryptjs": "^3.0.3",
+        "dotenv": "^17.4.2",
+        "express": "^5.2.1",
+        "jsonwebtoken": "^9.0.3",
+        "multer": "^2.2.0"
+    },
+    "devDependencies": {
+        "nodemon": "^3.1.14"
+    }
 }
